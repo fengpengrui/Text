@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style>
+			*{margin: 0;padding: 0;}
+			
+			li{list-style: none;}
+			#box{width: 500px;height: 600px;border: 1px #000 dashed;margin:70px auto ;
+				position: relative;}
+			#box h2{position:absolute;left:-1px;top:-50px;line-height: 50px;color: saddlebrown;width: 500px;text-align: center;border: 1px saddlebrown solid;border-bottom: 0;}
+			#se{width:24px;display: none;position: absolute;}
+			#xin{position: absolute;display:none;}
+			.sui{position: absolute;}
+		</style>
+		<script>
+			window.onload=function(){
+				var oBox=document.getElementById('box');//找到游戏区
+				var oSe=document.getElementById('se');//找到色的图标
+				var oXin=document.getElementById('xin');//找到心得图标
+				var aSui=document.getElementsByClassName('sui');//定义衰的对象集合
+				var a=parseInt(Math.random()*500);//随机数
+				var b=parseInt(Math.random()*500);//随机数
+				var e=parseInt(Math.random()*4);//随机数给衰的起始方向
+				var c=0;//得分
+				var arrl=[];//X方向速度
+				var arrt=[];//Y方向速度
+				var arrc=[];//衰的方向
+//				leftup=0;//左上
+//				leftup=1;//右上
+//				leftup=2;//右下
+//				leftup=3;//左下
+				var delay = 3;	//定义运行时的延迟
+				var xspeed;	//定义left值的变化速率
+				var yspeed;	//定义top值的变化速率
+				var speed =0.5;	//定义球运行速度比
+				var timer ;	//定义计时器 控制球的运动
+				var right=oBox.offsetWidth-25;//定义右边框
+				var bottom=oBox.offsetHeight-25;//定义左边框
+				
+				
+				//衰的移动
+				function ren(elm,lu,tu,cu,j){//元素，左坐标，上坐标，方向，标记为哪一个衰
+					arrc[j]=chtion(cu,lu,tu);//调用判断方向函数，如果方向有改变，要将方向的值传回此元素所在的方向数组
+					move(lu,tu,arrc[j],j);//调用移动函数，并将移动后的值传回此元素对应的数组
+					elm.style.left=arrl[j]+'px';//将移动后X的值传给对应的衰
+					elm.style.top=arrt[j]+'px';//将移动后Y的值传给对应的衰
+				}
+				//移动的方法,根据方向和角度,以及位置
+				function move(xspeed,yspeed,leftup,j){
+					
+					if(leftup==0){
+						xspeed -=2*speed;
+						yspeed -= 2*speed;
+					}
+					else if(leftup==1){
+						xspeed += 2*speed;
+						yspeed -=2*speed;	
+					}
+					else if(leftup==2){
+						xspeed += 2*speed;
+						yspeed += 2*speed;	
+					}
+					else if(leftup==3){
+						xspeed -= 2*speed;
+						yspeed += 2*speed;
+					}
+					arrl[j]=xspeed;
+					arrt[j]=yspeed;
+				}
+				
+				//改变方向
+				function chtion(leftup,xspeed,yspeed){
+					//每个方向,都有2种不同的变向情况
+					if(leftup==0){	//比如左上运动,碰到左边框,则改变为右上
+						if(xspeed<=0){
+							leftup = 1;
+							
+						}else if(yspeed<=0){	//碰到顶边框,则改变为左下,下面以此类推
+							leftup = 3;
+							
+						}
+					}else if(leftup==1){
+						if(yspeed<=0){
+							leftup=2;
+							
+						}else if(xspeed>=right){
+							leftup =0;
+							
+						}
+					}else if(leftup==2){
+						if(xspeed>=right){
+							leftup=3;
+							
+						}else if(yspeed>=bottom){
+							leftup=1;
+							
+						}
+					}else if(leftup==3){
+						if(yspeed>=bottom){
+							 leftup = 0;
+							
+						}else if(xspeed<=0){
+							leftup=2;
+							
+						}
+					}
+					return leftup;
+				}
+	
+				//生成一个衰的图标,并插入游戏区
+				function addsui(){
+					var oSui=document.createElement('li');
+					oSui.className="sui";
+					oSui.innerHTML='<img src="img/qq.png" />';
+					oBox.appendChild(oSui);
+					
+				}
+				//判断边界
+				function region(elm,l,t){
+					
+					if(l<=0) l=0;
+					if(t<=0) t=0;
+					if(l>=oBox.offsetWidth-elm.offsetWidth) l=oBox.offsetWidth-elm.offsetWidth;
+					if(t>=oBox.offsetHeight-elm.offsetHeight) t=oBox.offsetHeight-elm.offsetHeight;
+					elm.style.left=l+'px';
+					elm.style.top=t+'px';
+				}
+				
+				//判断相撞
+				function hit(oBox1,oBox2){
+					var A_l=oBox1.offsetLeft;//A的左 red
+					var A_t=oBox1.offsetTop;//A的上 plum
+					var A_r=A_l+oBox1.offsetWidth;//A的右 blue
+					var A_b=A_t+oBox1.offsetHeight;//A的下 black
+						
+					var B_l=oBox2.offsetLeft;//B的左 blue
+					var B_t=oBox2.offsetTop;//B的上 black
+					var B_r=B_l+oBox2.offsetWidth;//B的右 red
+					var B_b=B_t+oBox2.offsetHeight;//B的下 plum
+						
+					if(A_l>B_r || A_t>B_b || A_r<B_l || A_b<B_t){ return false}else{ return true;}
+						
+				}
+				//随机数提取
+				function Random(){
+					a=parseInt(Math.random()*500);
+					b=parseInt(Math.random()*500);
+					e=parseInt(Math.random()*4);
+				}
+				//游戏开始
+				oBox.onmousemove=function(ev){
+					
+					oXin.style.display='block';//心的出现
+					oSe.style.display='block';//色的出现
+					var oEv=ev||window.event;
+					//色的位置坐标
+					var l_s=oEv.clientX-oBox.offsetLeft-oSe.offsetWidth/2; 
+					var t_s=oEv.clientY-oBox.offsetTop-oSe.offsetHeight/2;
+					//给心的坐标
+					var l_x=a;
+					var t_x=b;
+					//将心和色显现在游戏区
+					region(oSe,l_s,t_s);
+					region(oXin,l_x,t_x);
+					//判断色吃掉心得情况发生后事件
+					if(hit(oSe,oXin)){
+						addsui()//增加一个衰
+						
+						Random()//调用随机数给衰
+						var l_u=a;//衰的起始左坐标
+						var t_u=b;//衰的起始右坐标
+						var c_u=e;//衰的起始方向
+						//衰的属性值放到对应数组保存
+						arrl.push(l_u);
+						arrt.push(t_u);
+						arrc.push(c_u);
+						//衰的出现
+						region(aSui[c],l_u,t_u);
+						//得分加一
+						c++;
+						//新的随机数，用于下次给心的出现
+						Random()
+					}
+					
+					
+				}
+				//定时使衰不断运动
+				timer=setInterval(function(){
+					//遍历衰，使其运动
+					for(var i=0;i<c;i++){
+						
+						ren(aSui[i],arrl[i],arrt[i],arrc[i],i);//调用衰的移动
+						//判断游戏结束时的条件
+						if(hit(aSui[i],oSe)){
+							alert("你伤了"+c+'颗心');
+							clearInterval(timer);
+							
+						}
+					}
+					
+					
+				},delay)
+				
+				
+				
+				
+				oBox.onmouseout=function(){
+					oSe.style.display='none';
+				}
+				
+				
+				
+			}
+		</script>
+	</head>
+	<body>
+		
+		<div id='box'>
+			<h2 class="title">你能伤了几颗心</h2>
+			<span id="se" ><img src="img/3.png" /></span>
+			<span id='xin'><img src="img/11.png" /></span>
+			<!--<li class="sui"><img src="img/qq.png"/></li>-->
+		</div>
+	</body>
+</html>
